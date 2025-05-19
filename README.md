@@ -6,31 +6,6 @@ A GitHub tool for your LLM.
 
 `main.py` provides a Python interface to interact with the GitHub API, allowing you to fetch and display a user's public repositories, sorted by star count. The main functionality is encapsulated in the `Tools` class.
 
-## Usage
-
-1. **Install dependencies:**
-   Ensure you have `requests` installed:
-   ```bash
-   pip install requests
-   ```
-
-2. **Using main.py in your code:**
-   ```python
-   from main import Tools
-
-   tools = Tools()
-   username = "octocat"  # Replace with the GitHub username you want to query
-   top_repos = tools.list_repos(username, top=5)
-   print(top_repos)
-   ```
-
-   - `username`: GitHub username to fetch repositories for
-   - `top`: Number of top repositories to display (default: 10)
-   - `per_page`: Number of repositories to fetch per API request (default: 200)
-
-3. **Sample Output:**
-   The output will be a JSON-formatted list of repositories, sorted by star count, for the specified user.
-
 ## Example LLM Prompts
 
 Here are some example prompts you can use with your LLM to interact with Easy GitHub:
