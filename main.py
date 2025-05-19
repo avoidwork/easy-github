@@ -58,8 +58,7 @@ class Tools:
         repo_list.sort(key=lambda x: x["stars"], reverse=True)
         if len(repo_list) > top:
             repo_list = repo_list[:top]
-        result = f"""
-Show a list of the top {len(repo_list)} results:
+        result = f"""Show a list of the top {len(repo_list)} results:
 
 {json.dumps(repo_list)}
 """
