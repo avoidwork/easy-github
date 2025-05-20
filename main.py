@@ -3,18 +3,19 @@ title: Easy GitHub
 author: Jason Mulligan <jason.mulligan@avoidwork.com>
 author_url: https://github.com/avoidwork
 funding_url: https://github.com/avoidwork/easy-github
-version: 1.1.0
+version: 1.1.1
 """
 
 import requests
 import json
 
+BASE_URL = "https://api.github.com"
+TOKEN = None
+
 
 class Tools:
     def __init__(self) -> None:
         self.citation = True
-        self.base_url = "https://api.github.com"
-        self.token = None
         pass
 
     def list_repos(
@@ -29,7 +30,7 @@ class Tools:
         :return: List of the username's repositories sorted by stargazers.
         """
         stripped_username = username.strip().strip('"').strip("'")
-        url = f"{self.base_url}/users/{stripped_username}/repos"
+        url = f"{BASE_URL}/users/{stripped_username}/repos"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
@@ -38,8 +39,8 @@ class Tools:
             "page": 1,
             "per_page": per_page,
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        if TOKEN:
+            headers["Authorization"] = f"Bearer {TOKEN}"
         resp = requests.get(url, headers=headers, params=params)
         data = resp.json()
         if not isinstance(data, list):
@@ -71,13 +72,13 @@ class Tools:
         :param username: The GitHub username to get details for.
         :return: User details as a JSON string.
         """
-        url = f"{self.base_url}/users/{username}"
+        url = f"{BASE_URL}/users/{username}"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        if TOKEN:
+            headers["Authorization"] = f"Bearer {TOKEN}"
         resp = requests.get(url, headers=headers)
         if resp.status_code != 200:
             return f"Failed to fetch user {username}."
@@ -94,13 +95,13 @@ class Tools:
         :param repo: The name of the repository.
         :return: Repository details as a JSON string.
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}"
+        url = f"{BASE_URL}/repos/{owner}/{repo}"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        if TOKEN:
+            headers["Authorization"] = f"Bearer {TOKEN}"
         resp = requests.get(url, headers=headers)
         if resp.status_code != 200:
             return f"Failed to fetch repository {owner}/{repo}."
@@ -111,7 +112,7 @@ class Tools:
         return result
 
     def list_issues(
-        self, owner: str, repo: str, state: str = "open", per_page: int = 30
+        self, owner: str, repo: str, state: str = "open", per_page: int = 100
     ) -> str:
         """
         List issues for a repository.
@@ -121,7 +122,7 @@ class Tools:
         :param per_page: Number of issues per page.
         :return: List of issues as a JSON string.
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/issues"
+        url = f"{BASE_URL}/repos/{owner}/{repo}/issues"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
@@ -130,15 +131,13 @@ class Tools:
             "state": state,
             "per_page": per_page,
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        if TOKEN:
+            headers["Authorization"] = f"Bearer {TOKEN}"
         resp = requests.get(url, headers=headers, params=params)
         if resp.status_code != 200:
             return f"Failed to fetch issues for {owner}/{repo}."
-            data = resp.json()
-            if len(data) > top:
-                data = data[:top]
-            result = f"""Show the issues of the repository {owner}/{repo} with this data:
+        data = resp.json()
+        result = f"""Show the issues of the repository {owner}/{repo} with this data:
 
 {json.dumps(data)}
 """
@@ -153,14 +152,14 @@ class Tools:
         :param body: The body of the issue.
         :return: The created issue as a JSON string or an error message.
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/issues"
+        url = f"{BASE_URL}/repos/{owner}/{repo}/issues"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
         }
-        if not self.token:
+        if not TOKEN:
             return "Authentication token required to create an issue."
-        headers["Authorization"] = f"Bearer {self.token}"
+        headers["Authorization"] = f"Bearer {TOKEN}"
         payload = {
             "title": title,
             "body": body,
@@ -175,7 +174,12 @@ class Tools:
         return result
 
     def list_pull_requests(
-        self, owner: str, repo: str, state: str = "open", top: int = 10, per_page: int = 30
+        self,
+        owner: str,
+        repo: str,
+        state: str = "open",
+        top: int = 10,
+        per_page: int = 30,
     ) -> str:
         """
         List pull requests for a repository.
@@ -186,7 +190,7 @@ class Tools:
         :param per_page: Number of pull requests per page.
         :return: List of pull requests as a JSON string.
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/pulls"
+        url = f"{BASE_URL}/repos/{owner}/{repo}/pulls"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
@@ -195,8 +199,8 @@ class Tools:
             "state": state,
             "per_page": per_page,
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        if TOKEN:
+            headers["Authorization"] = f"Bearer {TOKEN}"
         resp = requests.get(url, headers=headers, params=params)
         if resp.status_code != 200:
             return f"Failed to fetch pull requests for {owner}/{repo}."
@@ -222,7 +226,6 @@ class Tools:
         :param search_type: The type of search (repositories, issues, code, users, topics, etc.).
         :param query: The search query string.
         :param top: The number of results to return.
-        :param stars: The minimum number of stars a repository must have to be included.
         :param per_page: The number of repositories in the API request.
         :param params: Optional extra parameters for the search (dict).
         :return: Search results as a JSON string or error message.
@@ -230,13 +233,13 @@ class Tools:
         allowed_types = ["repositories", "issues", "code", "users", "topics", "commits"]
         if search_type not in allowed_types:
             return f"search_type must be one of: {', '.join(allowed_types)}."
-        url = f"{self.base_url}/search/{search_type}"
+        url = f"{BASE_URL}/search/{search_type}"
         headers = {
             "X-GitHub-Api-Version": "2022-11-28",
             "Accept": "application/vnd.github+json",
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        if TOKEN:
+            headers["Authorization"] = f"Bearer {TOKEN}"
         all_params = {
             "q": query,
             "per_page": per_page,
