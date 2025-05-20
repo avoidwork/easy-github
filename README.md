@@ -47,4 +47,4 @@ Here are some example prompts you can use with your LLM to interact with Easy Gi
 - Author: Jason Mulligan <jason.mulligan@avoidwork.com>
 - GitHub: https://github.com/avoidwork
 - Funding: https://github.com/avoidwork/easy-github
-- Version: 1.1.0
+- Version: 1.1.1
